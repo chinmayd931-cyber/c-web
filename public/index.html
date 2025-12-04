@@ -1,0 +1,499 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8" />
+    <title>Expense Tracker · C Runtime</title>
+    <style>
+        :root {
+            color-scheme: light dark;
+            --accent: #6c63ff;
+            --accent-2: #ff6584;
+            --bg-dark: #0f0c29;
+            --bg-light: #24243e;
+            --glass: rgba(255,255,255,0.12);
+        }
+
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            min-height: 100vh;
+            font-family: "Poppins", "Segoe UI", sans-serif;
+            background: linear-gradient(135deg, var(--bg-dark), #302b63, var(--bg-light));
+            color: #f5f5f5;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 40px 20px;
+        }
+
+        .brand {
+            position: fixed;
+            top: 24px;
+            left: 32px;
+            display: flex;
+            align-items: center;
+            z-index: 3;
+        }
+
+        .logo {
+            font-size: 1.4rem;
+            font-weight: 700;
+            letter-spacing: 0.08em;
+            text-transform: uppercase;
+            background: linear-gradient(120deg, #fff, #b8fffb, #ffc5ff);
+            -webkit-background-clip: text;
+            color: transparent;
+        }
+
+        .app-frame {
+            width: min(960px, 100%);
+            background: rgba(10, 10, 10, 0.45);
+            border-radius: 28px;
+            padding: 40px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.5);
+            backdrop-filter: blur(18px);
+            animation: fadeIn 900ms ease forwards;
+        }
+
+        h1 {
+            font-size: 2.4rem;
+            margin: 0;
+        }
+
+        p {
+            line-height: 1.6;
+            color: rgba(255,255,255,0.82);
+        }
+
+        .ghost-btn {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.4);
+            color: #fff;
+            transition: background 200ms ease, transform 200ms ease;
+        }
+
+        .ghost-btn:hover {
+            background: rgba(255,255,255,0.08);
+            transform: translateY(-1px);
+        }
+
+        .orb {
+            position: absolute;
+            border-radius: 50%;
+            filter: blur(80px);
+            opacity: 0.6;
+            z-index: 0;
+            animation: pulse 12s ease-in-out infinite;
+        }
+
+        .orb-1 {
+            width: 320px;
+            height: 320px;
+            background: rgba(255,101,132,0.5);
+            top: -60px;
+            left: 10%;
+        }
+
+        .orb-2 {
+            width: 260px;
+            height: 260px;
+            background: rgba(108,99,255,0.5);
+            bottom: 10%;
+            right: 15%;
+            animation-delay: 2s;
+        }
+
+        .orb-3 {
+            width: 200px;
+            height: 200px;
+            background: rgba(0,255,186,0.45);
+            top: 20%;
+            right: 5%;
+            animation-delay: 4s;
+        }
+
+        .grid {
+            display: grid;
+            gap: 24px;
+            margin-top: 32px;
+        }
+
+        .card {
+            border-radius: 20px;
+            padding: 24px;
+            background: linear-gradient(160deg, rgba(255,255,255,0.12), rgba(255,255,255,0.05));
+            border: 1px solid rgba(255,255,255,0.1);
+            box-shadow: 0 12px 24px rgba(0,0,0,0.2);
+            animation: floatIn 600ms ease forwards;
+        }
+
+        label {
+            display: block;
+            font-size: 0.9rem;
+            margin-bottom: 8px;
+            letter-spacing: 0.02em;
+            text-transform: uppercase;
+            color: rgba(255,255,255,0.7);
+        }
+
+        input, select, button, textarea {
+            width: 100%;
+            border-radius: 14px;
+            border: none;
+            padding: 14px 16px;
+            font-size: 1rem;
+            font-family: inherit;
+        }
+
+        input, select {
+            background: rgba(255,255,255,0.15);
+            color: #fff;
+            border: 1px solid rgba(255,255,255,0.15);
+        }
+
+        input:focus, select:focus {
+            outline: 2px solid rgba(255,255,255,0.35);
+        }
+
+        button {
+            cursor: pointer;
+            background: linear-gradient(135deg, var(--accent), var(--accent-2));
+            color: #fff;
+            font-weight: 600;
+            transition: transform 200ms ease, box-shadow 200ms ease;
+            border: none;
+        }
+
+        button:hover {
+            transform: translateY(-2px) scale(1.01);
+            box-shadow: 0 15px 30px rgba(0,0,0,0.35);
+        }
+
+        .actions {
+            display: flex;
+            gap: 12px;
+            flex-wrap: wrap;
+        }
+
+        .actions button {
+            flex: 1;
+            min-width: 200px;
+        }
+
+        .entries {
+            display: flex;
+            flex-direction: column;
+            gap: 12px;
+            margin-top: 12px;
+        }
+
+        .entry-item {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            padding: 14px 20px;
+            border-radius: 16px;
+            background: rgba(0,0,0,0.2);
+            border: 1px solid rgba(255,255,255,0.08);
+            animation: fadeIn 400ms ease forwards;
+        }
+
+        .entry-item span {
+            font-weight: 600;
+        }
+
+        .entry-item button {
+            width: auto;
+            padding: 8px 14px;
+            background: rgba(255,255,255,0.18);
+            font-size: 0.85rem;
+        }
+
+        .switches {
+            display: flex;
+            gap: 20px;
+            flex-wrap: wrap;
+            margin-top: 20px;
+        }
+
+        .switch {
+            display: flex;
+            gap: 12px;
+            align-items: center;
+            padding: 10px 16px;
+            border-radius: 999px;
+            background: rgba(255,255,255,0.08);
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+
+        .switch input {
+            width: auto;
+            transform: scale(1.2);
+        }
+
+        pre {
+            min-height: 220px;
+            background: #040404;
+            color: #00ffba;
+            padding: 18px;
+            border-radius: 14px;
+            font-family: "Fira Code", "Consolas", monospace;
+            overflow-x: auto;
+            border: 1px solid rgba(0,255,186,0.3);
+            box-shadow: inset 0 0 15px rgba(0,255,186,0.1);
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        @keyframes floatIn {
+            from { opacity: 0; transform: translate3d(0, 20px, 0) scale(0.98); }
+            to { opacity: 1; transform: translate3d(0,0,0) scale(1); }
+        }
+
+        @keyframes pulse {
+            0%, 100% { transform: scale(0.9); opacity: 0.4; }
+            50% { transform: scale(1.1); opacity: 0.7; }
+        }
+    </style>
+</head>
+<body>
+    <div class="orb orb-1"></div>
+    <div class="orb orb-2"></div>
+    <div class="orb orb-3"></div>
+
+    <header class="brand">
+        <div class="logo">ExpensifyWallet</div>
+    </header>
+
+    <main class="app-frame" id="dashboard">
+        <header>
+            <h1>Expense Tracker Dashboard</h1>
+            <p>
+                Store transactions securely, replay them via the native
+                <code>tracker.c</code> program, and watch real-time summaries
+                with premium-grade motion and gradients.
+            </p>
+        </header>
+
+        <section class="grid">
+            <article class="card" id="entry-card">
+                <h2>Add Transaction</h2>
+                <label for="amount">Amount (+ income, - expense)</label>
+                <input id="amount" type="number" step="0.01" placeholder="e.g. -42.75" />
+
+                <label for="category">Category</label>
+                <select id="category">
+                    <option value="1">Food</option>
+                    <option value="2">Cosmetics</option>
+                    <option value="3">Travel</option>
+                </select>
+
+                <div class="actions">
+                    <button id="add-transaction">Add to Ledger</button>
+                    <button id="clear-transactions" class="ghost-btn">Clear Ledger</button>
+                </div>
+
+                <div class="switches">
+                    <label class="switch">
+                        <input type="checkbox" id="include-new" checked />
+                        <span>1. New Expense / Income (use saved transactions)</span>
+                    </label>
+                    <label class="switch">
+                        <input type="checkbox" id="include-category" checked />
+                        <span>2. Category Report</span>
+                    </label>
+                    <label class="switch">
+                        <input type="checkbox" id="include-annual" checked />
+                        <span>3. Annual Report</span>
+                    </label>
+                </div>
+            </article>
+
+            <article class="card">
+                <h2>Stored Transactions</h2>
+                <p>Everything you add is persisted through the Node server for historical replay.</p>
+                <div class="entries" id="entries"></div>
+            </article>
+
+            <article class="card">
+                <h2>Tracker Output</h2>
+                <button id="run-program">Run tracker.c</button>
+                <pre id="output">Awaiting execution...</pre>
+            </article>
+        </section>
+    </main>
+
+    <script>
+        const state = {
+            transactions: []
+        };
+
+        const entriesEl = document.getElementById("entries");
+        const amountInput = document.getElementById("amount");
+        const categoryInput = document.getElementById("category");
+        const includeNew = document.getElementById("include-new");
+        const includeCategory = document.getElementById("include-category");
+        const includeAnnual = document.getElementById("include-annual");
+        const outputEl = document.getElementById("output");
+        const api = async (path, options = {}) => {
+            const headers = {
+                "Content-Type": "application/json",
+                ...(options.headers || {})
+            };
+
+            const response = await fetch(path, {
+                ...options,
+                headers
+            });
+
+            if (!response.ok) {
+                const error = await response.json().catch(() => ({}));
+                throw new Error(error.error || "Request failed.");
+            }
+
+            return response.json();
+        };
+
+        const formatCategory = value => {
+            switch (value) {
+                case "1":
+                    return "Food";
+                case "2":
+                    return "Cosmetics";
+                case "3":
+                    return "Travel";
+                default:
+                    return "Unknown";
+            }
+        };
+
+        const renderEntries = () => {
+            entriesEl.innerHTML = "";
+            if (!state.transactions.length) {
+                entriesEl.innerHTML = "<p>No transactions yet.</p>";
+                return;
+            }
+
+            state.transactions
+                .slice()
+                .reverse()
+                .forEach((entry, index) => {
+                    const div = document.createElement("div");
+                    div.className = "entry-item";
+                    div.innerHTML = `
+                        <div>
+                            <span>#${state.transactions.length - index}</span>
+                            <small> · ${new Date(entry.createdAt).toLocaleString()}</small><br />
+                            <span>${Number(entry.amount).toFixed(2)}</span>
+                            <small> · ${formatCategory(entry.category)}</small>
+                        </div>
+                        <button data-id="${entry.id}">Remove</button>
+                    `;
+                    entriesEl.appendChild(div);
+                });
+        };
+
+        const refreshTransactions = async () => {
+            const data = await api("/api/transactions");
+            state.transactions = data.transactions || [];
+            renderEntries();
+        };
+
+        const addTransaction = async () => {
+            const amount = Number(amountInput.value);
+            const category = categoryInput.value;
+
+            if (Number.isNaN(amount)) {
+                outputEl.textContent = "Please enter a valid amount.";
+                return;
+            }
+
+            await api("/api/transactions", {
+                method: "POST",
+                body: JSON.stringify({ amount, category })
+            });
+            amountInput.value = "";
+            await refreshTransactions();
+            outputEl.textContent = "Transaction stored securely.";
+        };
+
+        const clearTransactions = async () => {
+            await api("/api/transactions", { method: "DELETE" });
+            await refreshTransactions();
+            outputEl.textContent = "Ledger cleared server-side.";
+        };
+
+        entriesEl.addEventListener("click", async event => {
+            if (event.target.tagName === "BUTTON") {
+                const id = event.target.dataset.id;
+                await api(`/api/transactions/${id}`, { method: "DELETE" });
+                await refreshTransactions();
+            }
+        });
+
+        document
+            .getElementById("add-transaction")
+            .addEventListener("click", addTransaction);
+
+        document
+            .getElementById("clear-transactions")
+            .addEventListener("click", clearTransactions);
+
+        const buildScript = () => {
+            let script = "";
+            if (includeNew.checked && state.transactions.length) {
+                state.transactions.forEach(entry => {
+                    script += `1\n${entry.amount}\n${entry.category}\n`;
+                });
+            }
+
+            if (includeCategory.checked) {
+                script += "2\n";
+            }
+            if (includeAnnual.checked) {
+                script += "3\n";
+            }
+
+            script += "4\n";
+            return script;
+        };
+
+        const runProgram = async () => {
+            const script = buildScript();
+            if (!script) {
+                outputEl.textContent =
+                    "Add at least one transaction before running tracker.c.";
+                return;
+            }
+
+            outputEl.textContent = "Running tracker.c ...";
+
+            const data = await api("/run-c", {
+                method: "POST",
+                body: JSON.stringify({ script })
+            });
+
+            outputEl.textContent =
+                data.output || data.error || JSON.stringify(data, null, 2);
+        };
+
+        document
+            .getElementById("run-program")
+            .addEventListener("click", runProgram);
+
+        (async () => {
+            try {
+                await refreshTransactions();
+            } catch (error) {
+                outputEl.textContent = error.message;
+            }
+        })();
+    </script>
+</body>
+</html>
